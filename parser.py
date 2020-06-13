@@ -12,13 +12,14 @@ parser.add_argument('--str', '-s', help='String input', default="")
 parser.add_argument('--output', '-o', help='File output')
 parser.add_argument('--encode', '-e', help='Encoding multiplier', default=2)
 parser.add_argument('--timeout', '-t', help='Timeout', default=5)
-parser.add_argument('--lang', '-l', help='Language output', default='C')
+parser.add_argument('--lang', '-l', help='Language output (C/python)', default='py')
 parser.add_argument('--debug', '-d', help='Enable debug mode', default=False, action='store_true')
 
 
 # Global variables
 args = parser.parse_args()
 input_str = args.str
+input_list = [ord(i) for i in input_str]
 length = len(input_str)
 encoding = int(args.encode)
 timing = int(args.timeout)
@@ -84,9 +85,9 @@ encode_func = [xor, neg, add, sub, index, inc, dec]
 
 
 # Encode input characters with encoding multiplier
-def encode(input_list):
+def encode(input_list, func_len):
     # Randomise encoding functions
-    temp_seq = [random.randint(0,len(encode_func)-1) for i in range(encoding)]
+    temp_seq = [random.randint(0,func_len) for i in range(encoding)]
     # Replace '4's with a new encoding function
     encode_seq = [[i,random.choice([0,2,3])] if i==4 else i for i in temp_seq]
     # Random variables for encoding functions
@@ -106,7 +107,37 @@ def encode(input_list):
     return encode_seq, rand_seq, output_seq
 
 
+# Find all-positive output values
+def find_pos(input_list, func_len=len(encode_func)-1):
+    encode_seq, rand_seq, output_seq = encode(input_list, func_len)
+    # Initiate timeout
+    signal.signal(signal.SIGALRM, timeout)
+    signal.alarm(timing)
+    # Determine ideal output of all-positive values
+    while (sum([False if 0<=i<256 else True for i in output_seq]) > 0):
+        encode_seq, rand_seq, output_seq = encode(input_list, func_len)
+    debug("Encoding index", encode_seq)
+    debug("Encoded inputs", output_seq)
+    return encode_seq, rand_seq, output_seq
+
+
+# Reverse encoding functions
+def decode(encode_seq, rand_seq, decode_fmt, enc_var1, enc_var2):
+    body = ""
+    for i in range(len(encode_seq)-1, -1, -1):
+        if isinstance(encode_seq[i], list):
+            body += "\t%s %s%s;\n" % (enc_var2, decode_fmt[encode_seq[i][1]], enc_var1)
+        elif encode_seq[i] == 1:
+            body += "\t%s %s%s;\n" % (enc_var2, decode_fmt[encode_seq[i]], enc_var2)
+        elif encode_seq[i] >= 5:
+            body += "\t%s%s;\n" % (enc_var2, decode_fmt[encode_seq[i]])
+        else:
+            body += "\t%s %s%s;\n" % (enc_var2, decode_fmt[encode_seq[i]], hex(rand_seq[i]))
+    return body
+
+
 def C():
+    # Encryption method: UNICODE/ANSI -> wchar/stdio
     try:
         enc_fmt = int(input("Enter encryption method, [1]:UNICODE or [2]:ANSI : "))
         if (enc_fmt not in [1, 2]):
@@ -123,18 +154,10 @@ def C():
         header = "#include <wchar.h>\n\nwchar_t str[%s] = { " % (length)
     else:
         header = "#include <stdlib.h>\n#include <stdio.h>\n\nunsigned char str[%s] = { " % (length)
-    input_list = [ord(i) for i in input_str]
     debug("Input list", input_list)
 
-    encode_seq, rand_seq, output_seq = encode(input_list)
-    # Initiate timeout
-    signal.signal(signal.SIGALRM, timeout)
-    signal.alarm(timing)
-    # Determine ideal output of all-positive values
-    while (sum([False if 0<=i<256 else True for i in output_seq]) > 0):
-        encode_seq, rand_seq, output_seq = encode(input_list)
-    debug("Encoding index", encode_seq)
-    debug("Encoded inputs", output_seq)
+    # Find all-positive output values
+    encode_seq, rand_seq, output_seq = find_pos(input_list)
     # Store char array
     header += ", ".join([hex(i) for i in output_seq]) + " };\n\n"
 
@@ -143,15 +166,7 @@ def C():
     body = "int main() {\n\tfor (unsigned int %s = 0, %s = 0; %s < %s; %s++) {\n" % (enc_var1, enc_var2, enc_var1, length, enc_var1)
     body += "\t\t%s = str[%s];\n" % (enc_var2, enc_var1)
     # Reverse encoding functions
-    for i in range(len(encode_seq)-1, -1, -1):
-        if isinstance(encode_seq[i], list):
-            body += "\t\t%s %s%s;\n" % (enc_var2, decode_fmt[encode_seq[i][1]], enc_var1)
-        elif encode_seq[i] == 1:
-            body += "\t\t%s %s%s;\n" % (enc_var2, decode_fmt[encode_seq[i]], enc_var2)
-        elif encode_seq[i] >= 5:
-            body += "\t\t%s%s;\n" % (enc_var2, decode_fmt[encode_seq[i]])
-        else:
-            body += "\t\t%s %s%s;\n" % (enc_var2, decode_fmt[encode_seq[i]], hex(rand_seq[i]))
+    body += decode(encode_seq, rand_seq, decode_fmt, enc_var1, enc_var2)
     body += "\t\tstr[%s] = %s;\n" % (enc_var1, enc_var2)
     # Print decoded string
     if (enc_fmt == 1):
@@ -160,6 +175,41 @@ def C():
         body += "\t}\n\tprintf(\"%s\", str);\n}"
 
     # Output
+    output(header, body)
+    return
+
+
+def py():
+    # Strings for decoding
+    decode_fmt = ['^= ', '= ~', '-= ', '+= ']
+
+    # Encoded string
+    header = "enc_str = [ "
+    debug("Input list", input_list)
+
+    # Find all-positive output values
+    encode_seq, rand_seq, output_seq = find_pos(input_list, len(encode_func)-3)
+    # Store char array
+    header += ", ".join([hex(i) for i in output_seq]) + " ]\n\n"
+
+    enc_var1, enc_var2 = gen_varstr(), gen_varstr()
+    # Decryption loop
+    body = "for %s in range(%s):\n" % (enc_var1, length)
+    body += "\t%s = enc_str[%s];\n" % (enc_var2, enc_var1)
+    # Reverse encoding functions
+    body += decode(encode_seq, rand_seq, decode_fmt, enc_var1, enc_var2)
+    body += "\tenc_str[%s] = %s;\n" % (enc_var1, enc_var2)
+    # Print decoded string
+    body += "\nenc_str = ''.join([chr(i) for i in enc_str])\n"
+    body += "print(enc_str)\n"
+
+    # Output
+    output(header, body)
+    return
+
+
+# Write to file/stdout
+def output(header, body):
     if (output_file):
         open(output_file, 'w').write(header+body)
         print("Done!")
@@ -169,8 +219,10 @@ def C():
 
 
 def main():
-    if (lang == 'C' or lang == 'c'):
+    if (lang == 'C' or lang == 'c' or lang == 'cpp' or lang == 'c++'):
         C()
+    elif (lang == 'py' or lang == 'py3' or lang == 'python' or lang == 'python2' or lang == 'python3'):
+        py()
     else:
         print("Language not supported yet!")
         sys.exit()
