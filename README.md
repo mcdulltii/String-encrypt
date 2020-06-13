@@ -40,8 +40,6 @@ String encryption parser
 
   - **Use parser_notimeout.py for now**
 
-- Function randomizer needs to prevent consecutive and overlapping instructions
-
 ## References
 
 - [Stringencrypt](https://www.stringencrypt.com)

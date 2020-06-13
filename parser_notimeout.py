@@ -76,10 +76,30 @@ def dec(input_string, unused):
 encode_func = [xor, neg, add, sub, index, inc, dec]
 
 
+# Random generator with non-consecutive repeats
+# n: Indexes of encode_func
+# N: Encoding multiplier
+class generator:
+    def __init__(self, n, N):
+        assert n > 1, "n has to be more than 1"
+        self.n = n
+        self.N = N
+
+    def __iter__(self):
+        prev = None
+        cur_len = 0
+        while cur_len < self.N:
+            x = random.randint(0,self.n)
+            if x != prev:
+                prev = x
+                cur_len += 1
+                yield x
+
+
 # Encode input characters with encoding multiplier
 def encode(input_list, func_len):
     # Randomise encoding functions
-    temp_seq = [random.randint(0,func_len) for i in range(encoding)]
+    temp_seq = [i for i in generator(func_len, encoding)]
     # Replace '4's with a new encoding function
     encode_seq = [[i,random.choice([0,2,3])] if i==4 else i for i in temp_seq]
     # Random variables for encoding functions
