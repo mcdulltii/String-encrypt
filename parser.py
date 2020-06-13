@@ -104,6 +104,8 @@ def encode(input_list, func_len):
                 temp = encode_func[encode_seq[j][0]](temp, i, encode_seq[j][1])
             else:
                 temp = encode_func[encode_seq[j]](temp, rand_seq[j])
+        if (temp < 0):
+            return encode_seq, rand_seq, [-1, -1,- 1]
         output_seq.append(temp)
     return encode_seq, rand_seq, output_seq
 
