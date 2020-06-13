@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import binascii
 import random
 import string
 import sys
@@ -172,7 +173,7 @@ def C():
     if (enc_fmt == 1):
         body += "\t}\n\twprintf(str);\n}"
     else:
-        body += "\t}\n\tprintf(\"%s\", str);\n}"
+        body += "\t}\n\tprintf(\"%s\", str);\n}\n"
 
     # Output
     output(header, body)
@@ -201,11 +202,41 @@ def py():
     body += "\tenc_str[%s] = %s;\n" % (enc_var1, enc_var2)
     # Print decoded string
     body += "\nenc_str = ''.join([chr(i) for i in enc_str])\n"
+    body += "del %s, %s\n" % (enc_var1, enc_var2)
     body += "print(enc_str)\n"
 
     # Output
     output(header, body)
     return
+
+
+def js():
+    # Strings for decoding
+    decode_fmt = ['^= ', '= ~', '-= ', '+= ', None, '--', '++']
+
+    # Imports
+    header = "<script type=\"text/javascript\">\n\nvar str = \""
+    debug("Input list", input_list)
+
+    # Find all-positive output values
+    encode_seq, rand_seq, output_seq = find_pos(input_list)
+    # Store char array
+    header += "".join([hex(i) for i in output_seq]).replace('0x','\\x') + "\";\n\n"
+
+    enc_var1, enc_var2 = gen_varstr(), gen_varstr()
+    # Decryption loop
+    body = "for (var %s = 0, %s = 0; %s < %s; %s++) {\n" % (enc_var1, enc_var2, enc_var1, length, enc_var1)
+    body += "\t%s = str.charCodeAt(%s);\n" % (enc_var2, enc_var1)
+    # Reverse encoding functions
+    body += decode(encode_seq, rand_seq, decode_fmt, enc_var1, enc_var2)
+    body += "\tstr = str.substr(0, %s) + String.fromCharCode(%s) + str.substr(%s + 1);\n" % (enc_var1, enc_var2, enc_var1)
+    # Print decoded string
+    body += "}\nalert(str);\n</script>\n"
+
+    # Output
+    output(header, body)
+    return
+
 
 
 # Write to file/stdout
@@ -218,11 +249,14 @@ def output(header, body):
     return
 
 
+# Check for supported languages
 def main():
     if (lang == 'C' or lang == 'c' or lang == 'cpp' or lang == 'c++'):
         C()
     elif (lang == 'py' or lang == 'py3' or lang == 'python' or lang == 'python2' or lang == 'python3'):
         py()
+    elif (lang == 'js' or lang == 'javascript'):
+        js()
     else:
         print("Language not supported yet!")
         sys.exit()
