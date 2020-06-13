@@ -32,8 +32,16 @@ String encryption parser
 > ./parser.py -s hello -e 10 -l py -o hello.py
 ```
 
+### ![Output](img/2.png)
+
+## Issues
+
+- Uses `import signal` to set timeout for running function, which only works on UNIX.
+
+  - **Remove timeout code to run on Windows**
+
 ## References
 
-- [Stringencrypt](www.stringencrypt.com)
+- [Stringencrypt](https://www.stringencrypt.com)
 
 ### Note: Program is made without reference to the executable from the website. The python program here is written from scratch with reference solely to the outputs of the string encryption there
