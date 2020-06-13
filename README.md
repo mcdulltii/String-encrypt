@@ -38,7 +38,9 @@ String encryption parser
 
 - Uses `import signal` to set timeout for running function, which only works on UNIX.
 
-  - **Remove timeout code to run on Windows**
+  - **Use parser_notimeout.py for now**
+
+- Function randomizer needs to prevent consecutive and overlapping instructions
 
 ## References
 
