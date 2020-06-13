@@ -137,6 +137,7 @@ def decode(encode_seq, rand_seq, decode_fmt, enc_var1, enc_var2):
     return body
 
 
+# String encryption for C
 def C():
     # Encryption method: UNICODE/ANSI -> wchar/stdio
     try:
@@ -180,6 +181,7 @@ def C():
     return
 
 
+# String encryption for Python
 def py():
     # Strings for decoding
     decode_fmt = ['^= ', '= ~', '-= ', '+= ']
@@ -210,6 +212,7 @@ def py():
     return
 
 
+# String encryption for Javascript
 def js():
     # Strings for decoding
     decode_fmt = ['^= ', '= ~', '-= ', '+= ', None, '--', '++']
@@ -238,6 +241,43 @@ def js():
     return
 
 
+# String encryption for Java
+def java():
+    # Strings for decoding
+    decode_fmt = ['^= ', '= ~', '-= ', '+= ', None, '--', '++']
+
+    # Strip outfile name
+    try:
+        class_name = output_file.split('.')[-2].split('/')[-1].split('\\')[-1]
+    except:
+        class_name = input("Input Java class name: ")
+    if (not class_name):
+        print("Invalid class name")
+        sys.exit()
+
+    # Imports
+    header = "import java.io.*;\n\npublic class %s {\n\tpublic static void main(String myargs[]) {\n\tString str = \"" % (class_name)
+    debug("Input list", input_list)
+
+    # Find all-positive output values
+    encode_seq, rand_seq, output_seq = find_pos(input_list)
+    # Store char array
+    header += "\\u00"+"\\u00".join([hex(i) for i in output_seq]).replace('0x','').zfill(2) + "\";\n\n"
+
+    enc_var1, enc_var2 = gen_varstr(), gen_varstr()
+    # Decryption loop
+    body = "\tfor (int %s = 0, %s = 0; %s < %s; %s++) {\n" % (enc_var1, enc_var2, enc_var1, length, enc_var1)
+    body += "\t%s = str.charAt(%s);\n" % (enc_var2, enc_var1)
+    # Reverse encoding functions
+    body += decode(encode_seq, rand_seq, decode_fmt, enc_var1, enc_var2)
+    body += "\tstr = str.substring(0, %s) + (char)(%s) + str.substring(%s + 1);\n" % (enc_var1, enc_var2, enc_var1)
+    # Print decoded string
+    body += "\t}\n\tSystem.out.println(str);\n\t}\n}\n"
+
+    # Output
+    output(header, body)
+    return
+
 
 # Write to file/stdout
 def output(header, body):
@@ -257,11 +297,14 @@ def main():
         py()
     elif (lang == 'js' or lang == 'javascript'):
         js()
+    elif (lang == 'java' or lang == 'jv'):
+        java()
     else:
         print("Language not supported yet!")
         sys.exit()
 
 
+# Check for arguments
 if __name__ == '__main__':
     if (length==0):
         print("No input given!")
