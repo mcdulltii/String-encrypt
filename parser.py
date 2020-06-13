@@ -13,7 +13,7 @@ parser.add_argument('--str', '-s', help='String input', default="")
 parser.add_argument('--output', '-o', help='File output')
 parser.add_argument('--encode', '-e', help='Encoding multiplier', default=2)
 parser.add_argument('--timeout', '-t', help='Timeout', default=5)
-parser.add_argument('--lang', '-l', help='Language output (C/python)', default='py')
+parser.add_argument('--lang', '-l', help='Language output (C, Python, Javascript, Java)', default='py')
 parser.add_argument('--debug', '-d', help='Enable debug mode', default=False, action='store_true')
 
 
@@ -291,13 +291,13 @@ def output(header, body):
 
 # Check for supported languages
 def main():
-    if (lang == 'C' or lang == 'c' or lang == 'cpp' or lang == 'c++'):
+    if (lang in ['C', 'c', 'cpp', 'c++']):
         C()
-    elif (lang == 'py' or lang == 'py3' or lang == 'python' or lang == 'python2' or lang == 'python3'):
+    elif (lang in ['py', 'py3', 'python', 'python2', 'python3', 'Python', 'Python2', 'Python3']):
         py()
-    elif (lang == 'js' or lang == 'javascript'):
+    elif (lang in ['js', 'javascript', 'Javascript']):
         js()
-    elif (lang == 'java' or lang == 'jv'):
+    elif (lang in ['java', 'Java']):
         java()
     else:
         print("Language not supported yet!")
