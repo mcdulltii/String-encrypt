@@ -36,10 +36,6 @@ Outputs a decryption function for encrypting an inputted string
 
 ### ![Output](img/2.png)
 
-## Issues
-
-- Similar operations can still occur consecutively, eg. ADD after SUB
-
 ## References
 
 - [Stringencrypt](https://www.stringencrypt.com)

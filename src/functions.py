@@ -74,24 +74,31 @@ class generator:
         assert n > 1, "n has to be more than 1"
         self.n = n
         self.N = N
+        self.combi = [[0],[1],[2,3],[4],[5,6]]
 
     def __iter__(self):
-        prev = None
+        prev = [-1]
         cur_len = 0
         while cur_len < self.N:
+            is_four = 0
             x = random.randint(0,self.n)
-            if x != prev:
-                prev = x
+            if x not in prev:
+                if x == 4:
+                    x = random.choice([i for i in [0,2,3] if i not in prev])
+                    is_four = 1
+                prev = [i for i in self.combi if x in i][0]
+                #print(prev)
                 cur_len += 1
-                yield x
+                if (is_four):
+                    yield [4, x]
+                else:
+                    yield x
 
 
 # Encode input characters with encoding multiplier
 def encode(input_list, func_len, length, encoding):
     # Randomise encoding functions
-    temp_seq = [i for i in generator(func_len, encoding)]
-    # Replace '4's with a new encoding function
-    encode_seq = [[i,random.choice([0,2,3])] if i==4 else i for i in temp_seq]
+    encode_seq = [i for i in generator(func_len, encoding)]
     # Random variables for encoding functions
     rand_seq = [random.randint(1,255) for i in range(len(encode_seq))]
 
