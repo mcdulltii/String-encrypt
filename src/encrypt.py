@@ -102,7 +102,7 @@ def js(input_list, debugging, length, encoding, timing, output_file):
     debug("Encode sequence", encode_seq, debugging)
     debug("Output list", output_seq, debugging)
     # Store char array
-    header += "".join([hex(i) for i in output_seq]).replace('0x','\\x') + "\";\n\n"
+    header += "\\x"+"\\x".join([hex(i) for i in output_seq]).replace('0x','').zfill(2) + "\";\n\n"
 
     enc_var1, enc_var2 = gen_varstr(), gen_varstr()
     # Decryption loop
