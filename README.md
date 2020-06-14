@@ -1,10 +1,12 @@
 # String-encrypt
 
-String encryption parser
+String encryption parser in Python
+
+Outputs a decryption function for encrypting an inputted string
 
 ## Information
 
-- Python 3 compatible
+- Python 2 and 3 compatible
 
 - Encrypts string input with randomized functions
 
@@ -29,16 +31,14 @@ String encryption parser
 ## Example commands
 
 ```shell
-> ./parser.py -s hello -e 10 -l py -o hello.py
+> ./parser.py -s hello -e 10 -l py -t 3 -o hello.py
 ```
 
 ### ![Output](img/2.png)
 
 ## Issues
 
-- Uses `import signal` to set timeout for running function, which only works on UNIX.
-
-  - **Use parser_notimeout.py for now**
+- Similar operations can still occur consecutively, eg. ADD after SUB
 
 ## References
 
