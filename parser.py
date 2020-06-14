@@ -4,7 +4,9 @@ import binascii
 import random
 import string
 import sys
-import signal
+from contextlib import contextmanager
+import threading
+import _thread
 
 
 # Argument parser
@@ -76,9 +78,18 @@ def dec(input_string, unused):
 
 
 # Implement timeout for long runs
-def timeout(signum, frame):
-    print("Time Exceeded!")
-    sys.exit()
+@contextmanager
+def time_limit(seconds):
+    timer = threading.Timer(seconds, lambda: _thread.interrupt_main())
+    timer.start()
+    try:
+        yield
+    except KeyboardInterrupt:
+        print("Time exceeded!")
+        sys.exit()
+    finally:
+        # if the action ends in specified time, timer is canceled
+        timer.cancel()
 
 
 # Store functions within list for function randomization
@@ -134,11 +145,10 @@ def encode(input_list, func_len):
 def find_pos(input_list, func_len=len(encode_func)-1):
     encode_seq, rand_seq, output_seq = encode(input_list, func_len)
     # Initiate timeout
-    signal.signal(signal.SIGALRM, timeout)
-    signal.alarm(timing)
+    with time_limit(timing):
     # Determine ideal output of all-positive values
-    while (sum([False if 0<=i<256 else True for i in output_seq]) > 0):
-        encode_seq, rand_seq, output_seq = encode(input_list, func_len)
+        while (sum([False if 0<=i<256 else True for i in output_seq]) > 0):
+            encode_seq, rand_seq, output_seq = encode(input_list, func_len)
     debug("Encoding index", encode_seq)
     debug("Encoded inputs", output_seq)
     return encode_seq, rand_seq, output_seq
