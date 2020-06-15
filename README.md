@@ -1,4 +1,5 @@
 # String-encrypt
+[![](https://img.shields.io/badge/Category-Reverse%20Engineering-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python3-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.0-E5A505?style=flat-square&color=green)]()
 
 String encryption parser in Python
 
