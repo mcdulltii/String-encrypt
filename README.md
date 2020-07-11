@@ -1,5 +1,5 @@
 # String-encrypt
-[![](https://img.shields.io/badge/Category-Reverse%20Engineering-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python3-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.0-E5A505?style=flat-square&color=green)]()
+[![](https://img.shields.io/badge/Category-Reverse%20Engineering-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python3-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.1-E5A505?style=flat-square&color=green)]()
 
 String encryption parser in Python
 
@@ -7,7 +7,7 @@ Outputs a decryption function for encrypting an inputted string
 
 ## Information
 
-- Python 2 and 3 compatible
+- Python 3 compatible
 
 - Encrypts string input with randomized functions
 

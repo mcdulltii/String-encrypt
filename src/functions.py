@@ -113,7 +113,7 @@ def encode(input_list, func_len, length, encoding):
             else:
                 temp = encode_func[encode_seq[j]](temp, rand_seq[j])
         if (temp < 0):
-            return encode_seq, rand_seq, [-1, -1, -1]
+            return encode_seq, rand_seq, [-1000, -1000, -1000]
         output_seq.append(temp)
     return encode_seq, rand_seq, output_seq
 
@@ -124,7 +124,7 @@ def find_pos(input_list, length, encoding, timing, func_len=len(encode_func)-1):
     # Initiate timeout
     with time_limit(timing):
     # Determine ideal output of all-positive values
-        while (sum([False if 0<=i<256 else True for i in output_seq]) > 0):
+        while (sum([False if -512<=i<512 else True for i in output_seq]) > 0):
             encode_seq, rand_seq, output_seq = encode(input_list, func_len, length, encoding)
     return encode_seq, rand_seq, output_seq
 
